@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, HttpResponseNotFound, JsonResponse
+from django.http import HttpResponse, HttpResponseNotFound, JsonResponse
 from .models import *
 
 
@@ -16,14 +16,20 @@ def win(request):
 
     # Записать в бд
     change_score_points(winner_id, loser_id)
-    return
+    r = create_new_event(winner_id, loser_id)
+    resp = {
+        'wid': winner_id,
+        'lid': loser_id,
+        'r': r
+    }
+    return JsonResponse(resp)
 
 
-# POST 127.0.0.1/events/registration
+#+POST 127.0.0.1/events/registration
 def register_new(request):
     if request.method == 'POST':
-        req_body = request.body.decode()
-        sha = get_ds_id_or_create_sha(req_body)
+        req_body = request.POST['ds_id']
+        sha = get_sha_by_ds_id_or_create(req_body)
         resp = {
             'response': sha
         }
@@ -32,9 +38,9 @@ def register_new(request):
 
 # 127.0.0.1/events/stat?id=foo
 def stat(request):
-    param = request.GET.get('id', '')
+    param = request.GET.get('ds_id', '')
     try:
-        user = get_user_obj_from_db(param)
+        user = get_user_obj_from_db_by_ds_id(param)
         resp = {
             'user_name': user.user_name,
             'game_count': user.game_count,

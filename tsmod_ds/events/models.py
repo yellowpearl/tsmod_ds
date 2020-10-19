@@ -2,7 +2,13 @@ from django.db import models
 import hashlib
 
 
-def get_user_obj_from_db(name):
+def get_user_obj_from_db_by_ds_id(name):
+    """return user obj from db where user_name=name"""
+    user = UserScore.objects.get(user_name=name)
+    return user
+
+
+def get_user_obj_from_db_by_sha(name):
     """return user obj from db where user_name=name"""
     user = UserScore.objects.get(hash_id=name)
     return user
@@ -23,6 +29,7 @@ def plus_score_points(user):
     if game_counter <= 10:
         score = user.user_score
         user.user_score = score + 100
+        user.game_count = game_counter + 1
         user.save()
         return 0
     else:
@@ -32,9 +39,11 @@ def plus_score_points(user):
         difference = (first_player.user_score - last_player.user_score) // 100
         if first_player.hash_id == id:
             user.user_score = score + 25 - difference
+            user.game_count = game_counter + 1
             user.save()
             return 0
         user.user_score = score + 25 + difference
+        user.game_count = game_counter + 1
         user.save()
         return 0
 
@@ -44,6 +53,7 @@ def minus_score_points(user):
     if game_counter <= 10:
         score = user.user_score
         user.user_score = score - 100
+        user.game_count = game_counter + 1
         user.save()
         return 0
     else:
@@ -53,17 +63,19 @@ def minus_score_points(user):
         difference = (first_player.user_score - last_player.user_score) // 100
         if last_player.hash_id == id:
             user.user_score = score - 25 + difference
+            user.game_count = game_counter + 1
             user.save()
             return 0
         user.user_score = score - 25 - difference
+        user.game_count = game_counter + 1
         user.save()
         return 0
 
 
 def change_score_points(w_id, l_id):
     try:
-        user_w = get_user_obj_from_db(w_id)
-        user_l = get_user_obj_from_db(l_id)
+        user_w = get_user_obj_from_db_by_sha(w_id)
+        user_l = get_user_obj_from_db_by_sha(l_id)
         plus_score_points(user_w)
         minus_score_points(user_l)
         return
@@ -73,13 +85,13 @@ def change_score_points(w_id, l_id):
 
 def create_new_event(w_id, l_id):
     try:
-        user_w = get_user_obj_from_db(w_id)
-        user_l = get_user_obj_from_db(l_id)
+        user_w = UserScore.objects.get(hash_id=w_id)
+        user_l = UserScore.objects.get(hash_id=l_id)
         new_string = f'{user_w.user_name} победил {user_l.user_name}'
-        NewEvents.objects.create(new_string=new_string)
+        NewEvents.objects.create(news_string=new_string)
         return new_string
     except:
-        return
+        return "Error"
 
 
 def return_oldest_event():
@@ -89,7 +101,7 @@ def return_oldest_event():
     return event_string
 
 
-def get_ds_id_or_create_sha(ds_id):
+def get_sha_by_ds_id_or_create(ds_id):
     try:
         user = UserScore.objects.get(user_name=ds_id)
         return user.hash_id
