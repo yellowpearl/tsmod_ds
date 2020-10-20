@@ -4,6 +4,7 @@ import json
 import asyncio
 import aiohttp
 from discord.ext import commands
+import time
 
 stat_url = 'http://127.0.0.1:8000/events/stat/'
 win_url = 'http://127.0.0.1:8000/events/win/'
@@ -13,17 +14,6 @@ registration_url = 'http://127.0.0.1/events/registration/'
 session = requests.Session()
 Bot = commands.Bot(command_prefix='!')
 client = discord.Client()
-
-#@client.event
-#async def check_new_events():
-#    while True:
-#        # GET запрос к вебсервису
-#        response = session.get(check_events_url)
-#        txt = response.text
-#        channel = Bot.get_channel(325360370069929996)
-#        # Ответ отправить сообщением на канал
-#        await channel.send(txt)
-#        await asyncio.sleep(5)
 
 
 @client.event
@@ -40,6 +30,8 @@ async def on_message(message):
 
     if message.content.startswith('!stat'):
         # Отправить его на /event/stat
+        channel = client.get_channel(768067793198645258)
+        print(type(channel))
         params = {
             'ds_id': author_id_as_str
         }
@@ -67,6 +59,25 @@ async def on_message(message):
         # await отправить сообщение с hash_id
         await message.channel.send(f'{msg} ваш id')
 
-#client.loop.create_task(check_new_events())
+
+@Bot.event
+async def check_new_events():
+    await asyncio.sleep(15)
+    channel = client.get_channel(768067793198645258)
+    while True:
+        # GET запрос к вебсервису
+        with session.get(check_events_url) as response:
+            msg = json.loads(response.text)
+        if msg['oldest_event'] == 'no events':
+            await channel.send(content='No events111')
+            await asyncio.sleep(5)
+        else:
+            message = msg['oldest_event']
+            await channel.send(content=message)
+            await asyncio.sleep(5)
+
+
+
+client.loop.create_task(check_new_events())
 
 client.run('NzY3MDY0Mjc1ODIxNzg5MjE0.X4seRg.OULbhV4bkymclEeGgl6MpyS1rfY')

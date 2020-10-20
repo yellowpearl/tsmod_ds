@@ -95,9 +95,12 @@ def create_new_event(w_id, l_id):
 
 
 def return_oldest_event():
-    last = NewEvents.objects.order_by('pk')[0]
-    event_string = last.news_string
-    last.delete()
+    try:
+        last = NewEvents.objects.order_by('pk')[0]
+        event_string = last.news_string
+        last.delete()
+    except:
+        event_string = 'no events'
     return event_string
 
 
