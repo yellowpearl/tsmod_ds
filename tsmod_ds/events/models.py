@@ -89,7 +89,7 @@ def create_new_event(w_id, l_id):
         user_l = UserScore.objects.get(hash_id=l_id)
         new_string = f'{user_w.user_name} победил {user_l.user_name}'
         NewEvents.objects.create(news_string=new_string)
-        return new_string
+        return "success"
     except:
         return "Error"
 
@@ -121,6 +121,28 @@ def hash_ds_id(ds_id):
         except:
             UserScore.objects.create(user_name=ds_id, hash_id=sha, game_count=0, user_score=1500)
             return sha
+
+
+def wipe_all():
+    all = UserScore.objects.order_by('-pk')[:]
+    for item in all:
+        item.user_score = 1500
+        item.game_count = 0
+        item.save()
+
+
+def top_50_players():
+    top_50 = UserScore.objects.order_by('-user_score')[:50]
+    lst = []
+    for item in top_50:
+        item_dict = {
+            'user_name': item.user_name,
+            'user_score': item.user_score,
+            'game_count': item.game_count
+        }
+        lst.append(item_dict)
+    return lst
+
 
 
 class UserScore(models.Model):
