@@ -48,6 +48,8 @@ def stat(request):
             'game_count': user.game_count,
             'score': user.user_score
         }
+        if user.game_count < 10:
+            resp['score'] = f'скрыт(осталось {10-user.game_count} игр)'
         return JsonResponse(resp)
     except:
         resp = {
