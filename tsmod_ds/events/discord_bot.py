@@ -1,13 +1,11 @@
-import ctx as ctx
 import discord
 import requests
 import json
 import asyncio
-import aiohttp
 from discord.ext import commands
-import time
-base_url = "http://127.0.0.1:8000/events/"
+from .conf import config
 
+base_url = "http://127.0.0.1:8000/events/"
 events = {
     'stat_url': base_url+'stat/',
     'win_url ': base_url+'win/',
@@ -15,6 +13,7 @@ events = {
     'registration_url': base_url+'registration/',
     'leaderboard_url': base_url+'leaderboard/',
 }
+TOKEN = config['token']
 
 session = requests.Session()
 Bot = commands.Bot(command_prefix='!')
@@ -32,10 +31,8 @@ async def on_message(message):
         return
     author_id_as_str = str(message.author).replace('#', '')
 
-
     if message.content.startswith('!stat'):
         # Отправить его на /event/stat
-        channel = client.get_channel(768067793198645258)
         params = {
             'ds_id': author_id_as_str
         }
@@ -54,7 +51,6 @@ async def on_message(message):
         await message.channel.send(f'{user_name}, сыграл {game_count} матчей, счет: {score}')
         return
 
-
     if message.content.startswith('!reg'):
         if isinstance(message.channel, discord.channel.DMChannel):
             body_data = {'ds_id': author_id_as_str}
@@ -62,7 +58,6 @@ async def on_message(message):
                 msg = json.loads(response.text)
             if msg['response'] == 'success':
                 await message.channel.send(f'{msg["sha"]} ваш id')
-
 
     if message.content.startswith('!leaderboard'):
         if isinstance(message.channel, discord.channel.DMChannel):
@@ -123,4 +118,4 @@ async def update_leaderboard():
 client.loop.create_task(check_new_events())
 client.loop.create_task(update_leaderboard())
 
-client.run('NzY3MDY0Mjc1ODIxNzg5MjE0.X4seRg.OULbhV4bkymclEeGgl6MpyS1rfY')
+client.run(TOKEN)
